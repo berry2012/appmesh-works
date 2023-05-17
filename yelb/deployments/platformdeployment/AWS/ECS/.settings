@@ -1,0 +1,6 @@
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --output text --query 'Account')
+export AWS_DEFAULT_REGION=eu-west-1
+export ENVOY_IMAGE=840364872350.dkr.ecr.eu-west-1.amazonaws.com/aws-appmesh-envoy:v1.25.4.0-prod
+export VPC="vpc-067ba50a72f7c6224"
+export PUBLIC_SUBNET_1="subnet-0251868749b5034eb"
+export PUBLIC_SUBNET_2="subnet-0c97a893a85da3a0c"
