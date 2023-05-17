@@ -1,2 +1,1 @@
-# Service Connectivity Inside and Outside the AWS App Mesh (ECS/Fargate)
-
+# AWS AppMesh Samples and Demo
