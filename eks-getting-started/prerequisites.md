@@ -41,7 +41,9 @@ cloudWatch:
 
 ```
 
-`eksctl create cluster -f cluster.yml`
+```
+eksctl create cluster -f cluster.yml
+```
 
 
 ## Deploy App Mesh controller
@@ -49,12 +51,6 @@ cloudWatch:
 [App Mesh controller for Kubernetes](https://docs.aws.amazon.com/app-mesh/latest/userguide/getting-started-kubernetes.html)
 
 
-
-## create cluster
-
-```
-eksctl create cluster -f cluster.yaml --profile staging
-```
 
 **Add the eks-charts repository to Helm**
 ```
@@ -90,7 +86,7 @@ export CLUSTER_NAME=l3series
 export AWS_REGION=eu-west-1
 ```
 
-##Create an IAM role, attach the AWSAppMeshFullAccess and AWSCloudMapFullAccess AWS managed policies to it, and bind it to the appmesh-controller Kubernetes service account
+## Create an IAM role, attach the AWSAppMeshFullAccess and AWSCloudMapFullAccess AWS managed policies to it, and bind it to the appmesh-controller Kubernetes service account
 
 ```
 eksctl create iamserviceaccount \
@@ -116,7 +112,7 @@ output:
 AWS App Mesh controller installed!
 ```
 
-# Confirm that the controller version is v1.4.0 or later. You can review the change log on GitHub.
+## Confirm that the controller version is v1.4.0 or later. You can review the change log on GitHub.
 
 ```
 kubectl get deployment appmesh-controller \
@@ -127,6 +123,7 @@ v1.11.0
 ```
 
 ## Confirm Controller Pods are running
+
 ```
 % kubectl get pods -n appmesh-system
 NAME                                  READY   STATUS    RESTARTS   AGE
@@ -143,6 +140,7 @@ kubectl get MutatingWebhookConfiguration
 ```
 
 ## (Optional) - Deploy Container Insight 
+
 [Container Insights on Amazon EKS or Kubernetes](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-EKS.html)
 
 
@@ -154,7 +152,7 @@ kubectl get MutatingWebhookConfiguration
 kubectl apply -f mesh.yaml
 ```
 
-1. Create an App Mesh virtual node. A virtual node acts as a logical pointer to a Kubernetes deployment.
+2. Create an App Mesh virtual node. A virtual node acts as a logical pointer to a Kubernetes deployment.
 
 ```
 kubectl apply -f virtual-node.yaml
@@ -163,26 +161,29 @@ kubectl apply -f virtual-node.yaml
 - The virtual node represents a Kubernetes service that is created in a later step. 
 - The value for hostname is the fully qualified DNS hostname of the actual service that this virtual node represents.
 
-1. Create an App Mesh virtual router. Virtual routers handle traffic for one or more virtual services within your mesh.
+3. Create an App Mesh virtual router. Virtual routers handle traffic for one or more virtual services within your mesh.
 
 ```
 kubectl apply -f virtual-router.yaml
 ```
 
-1. Create an App Mesh virtual service. A virtual service is an abstraction of a real service that is provided by a virtual node directly or indirectly by means of a virtual router. Dependent services call your virtual service by its name
+4. Create an App Mesh virtual service. A virtual service is an abstraction of a real service that is provided by a virtual node directly or indirectly by means of a virtual router. Dependent services call your virtual service by its name
 
 ```
 kubectl apply -f virtual-service.yaml
 ```
 
-1. Create a Kubernetes service and deployment
+5. Create a Kubernetes service and deployment
 
 ```
 kubectl apply -f my-service-a.yaml
 ```
+
 **The value for the app matchLabels selector in the spec must match the value that you specified when you created the virtual node or the sidecar containers won't be injected into the pod**
 
+
 ## Reviewing the App Mesh Resources
+
 ```
 kubectl describe mesh my-mesh
 
