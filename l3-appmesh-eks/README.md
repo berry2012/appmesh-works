@@ -52,6 +52,14 @@ managedNodeGroups:
     minSize: 1
     maxSize: 3      
     privateNetworking: true
+    iam:
+      attachPolicyARNs:    
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess      
     ssh:
         enableSsm: true    
 
@@ -433,7 +441,21 @@ pod "yelb-db-5dfdd5d44f-phm2q" deleted
 pod "yelb-ui-56545895f-dcrlt" deleted   
 ```  
 
+5. Verify the pods
+
+```
+ % kubectl -n yelb get pods                             
+NAME                              READY   STATUS    RESTARTS   AGE
+redis-server-76d7b647dd-7cfk5     2/2     Running   0          2m49s
+yelb-appserver-56d6d6685b-zw6fk   2/2     Running   0          2m49s
+yelb-db-5dfdd5d44f-648bv          2/2     Running   0          2m49s
+yelb-ui-56545895f-hxhr2           2/2     Running   0          2m49s
+```
+
 
 ## Clean Up
 
 ./infrastructure/cleanup.sh
+
+
+

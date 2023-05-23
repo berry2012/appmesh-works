@@ -115,7 +115,14 @@ eksctl create iamserviceaccount \
 - Option 2: Attach AWSAppMeshEnvoyAccess permission to the worker node IAM role
 - App Mesh Envoy policy for accessing Virtual Node configuration.
 
+```
+aws iam attach-role-policy \
+    --policy-arn arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess \
+    --role-name $node_role_name
+```    
+
 - Delete the pods for the new configuration to take effect
+
 ```
 kubectl -n yelb delete pods --all
 ```
