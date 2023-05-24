@@ -1,0 +1,39 @@
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: serva
+  namespace: my-apps
+spec:
+  awsName: serva-virtual-node
+  podSelector:
+    matchLabels:
+      app: serva
+  listeners:
+    - portMapping:
+        port: 80
+        protocol: http
+  serviceDiscovery:
+    dns:
+      hostname: serva.my-apps.svc.cluster.local
+  backends:
+    - virtualService:
+       virtualServiceRef:
+          name: servb
+  logging:
+    accessLog:
+      file:
+        path: "/dev/stdout"   # find this in /aws/containerinsights/Cluster_Name/application log group. must be routing eks logs to cloudwatch logs using e.g. fluent-bit
+
+      
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualService
+metadata:
+  name: serva
+  namespace: my-apps
+spec:
+  awsName: serva.my-apps.svc.cluster.local
+  provider:
+    virtualNode:
+      virtualNodeRef:
+        name: serva

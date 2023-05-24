@@ -27,10 +27,10 @@ chmod 700 get_helm.sh
 
 ## Create Amazon EKS Cluster
 
-
-Create file cluster.yml with the content below:
+- Create file cluster.yml with the content below:
 
 ```
+cat << EOF >> cluster.yml
 # A simple example of ClusterConfig object:
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -67,8 +67,11 @@ cloudWatch:
  clusterLogging:
    enableTypes: ["audit", "authenticator", "controllerManager"]    
 
+EOF
 ```
 
+- Create the EKS Cluster with the command below:
+  
 ```
 eksctl create cluster -f cluster.yml
 ```
@@ -182,12 +185,14 @@ curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-i
 sed "s/{{cluster_name}}/$CLUSTER_NAME/;s/{{region_name}}/$AWS_REGION/" | kubectl apply -f -
 ```
 
-# Deploy App Mesh resources - Example
+# In Class Example 1: Deploy App Mesh resources - (Skip)
 
-1. Create an App Mesh service mesh 
+1. Create an App Mesh service mesh. Also create a namespace to test sample deployment
 
 ```
 kubectl apply -f mesh.yaml
+
+kubectl apply -f namespace.yaml
 ```
 
 2. Create an App Mesh virtual node. A virtual node acts as a logical pointer to a Kubernetes deployment.
@@ -220,7 +225,7 @@ kubectl apply -f my-service-a.yaml
 **The value for the app matchLabels selector in the spec must match the value that you specified when you created the virtual node or the sidecar containers won't be injected into the pod**
 
 
-## Reviewing the App Mesh Resources
+## Reviewing the App Mesh Resources (Skip)
 
 ```
 kubectl describe mesh my-mesh
@@ -241,6 +246,111 @@ aws appmesh describe-virtual-service --virtual-service-name my-service-a.my-apps
 
 kubectl -n my-apps describe pod my-service-a-XXXXXX
 ```
+
+
+# In Class Example 2: Service to Service Communication - (Skip)
+
+```
+kubectl apply -f mesh.yaml
+
+kubectl apply -f namespace.yaml
+
+kubectl apply -f servA,servB
+
+virtualnode.appmesh.k8s.aws/serva created
+virtualservice.appmesh.k8s.aws/serva-virtual-service created
+service/serva created
+deployment.apps/serva created
+virtualnode.appmesh.k8s.aws/servb created
+virtualservice.appmesh.k8s.aws/servb-virtual-service created
+service/servb created
+deployment.apps/servb created
+
+kubectl get all -n my-apps
+NAME                         READY   STATUS    RESTARTS   AGE
+pod/serva-6fdf8f6c6d-wjz66   2/2     Running   0          28s
+pod/servb-576b7946c5-f9zmm   2/2     Running   0          28s
+
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/serva   ClusterIP   10.100.194.23   <none>        80/TCP    28s
+service/servb   ClusterIP   10.100.68.104   <none>        80/TCP    28s
+
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/serva   1/1     1            1           28s
+deployment.apps/servb   1/1     1            1           28s
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/serva-6fdf8f6c6d   1         1         1       28s
+replicaset.apps/servb-576b7946c5   1         1         1       28s
+
+NAME                                ARN                                                                             AGE
+virtualnode.appmesh.k8s.aws/serva   arn:aws:appmesh:eu-west-1:2222222222222:mesh/my-mesh/virtualNode/serva_my-apps   30s
+virtualnode.appmesh.k8s.aws/servb   arn:aws:appmesh:eu-west-1:2222222222222:mesh/my-mesh/virtualNode/servb_my-apps   29s
+
+NAME                                                   ARN   AGE
+virtualservice.appmesh.k8s.aws/serva-virtual-service         30s
+virtualservice.appmesh.k8s.aws/servb-virtual-service         29s
+
+# edit web page for testing
+kubectl exec -it serva-6fdf8f6c6d-wjz66 -n my-apps -- sh   
+echo "Service A" > /usr/share/nginx/html/index.html
+
+kubectl exec -it servb-576b7946c5-f9zmm -n my-apps -- sh 
+echo "Service B" > /usr/share/nginx/html/index.html
+
+
+# ====== From Pod ServA ==========
+# curl -v http://servb.my-apps.svc.cluster.local
+*   Trying 10.100.58.49...
+* TCP_NODELAY set
+* Expire in 200 ms for 4 (transfer 0x559ba22edf50)
+* Connected to servb.my-apps.svc.cluster.local (10.100.58.49) port 80 (#0)
+> GET / HTTP/1.1
+> Host: servb.my-apps.svc.cluster.local
+> User-Agent: curl/7.64.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< server: envoy
+< date: Wed, 24 May 2023 12:12:33 GMT
+< content-type: text/html
+< content-length: 10
+< last-modified: Wed, 24 May 2023 12:05:42 GMT
+< etag: "646dfd96-a"
+< accept-ranges: bytes
+< x-envoy-upstream-service-time: 1
+< 
+Service B
+* Connection #0 to host servb.my-apps.svc.cluster.local left intact
+# 
+
+
+# ====== From Pod ServB ==========
+# curl -v http://serva.my-apps.svc.cluster.local
+*   Trying 10.100.28.5...
+* TCP_NODELAY set
+* Expire in 200 ms for 4 (transfer 0x55a4438b6f50)
+* Connected to serva.my-apps.svc.cluster.local (10.100.28.5) port 80 (#0)
+> GET / HTTP/1.1
+> Host: serva.my-apps.svc.cluster.local
+> User-Agent: curl/7.64.0
+> Accept: */*
+> 
+* Recv failure: Connection reset by peer
+* Closing connection 0
+curl: (56) Recv failure: Connection reset by peer
+
+```
+# Clean up
+
+```
+kubetcl delete -f servA,servB
+
+kubectl delete -f mesh.yaml
+
+kubectl delete -f namespace.yaml
+```
+
 ---
 
 # Demo

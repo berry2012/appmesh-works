@@ -1,0 +1,16 @@
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualGateway
+metadata:
+  name: ingress-gw
+  namespace: my-apps
+spec:
+  namespaceSelector:
+    matchLabels:
+      gateway: ingress-gw
+  podSelector:                # VG is like VN. Difference: VG points to a pod running only envoy but VN points a pod running both app + envoy
+    matchLabels:
+      app: ingress-gw
+  listeners:
+    - portMapping:
+        port: 8088
+        protocol: http
